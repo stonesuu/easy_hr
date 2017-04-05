@@ -1,0 +1,48 @@
+{% extends 'sign_layout.html' %}
+
+{% block content %}
+	<form class="form-signin">
+		<h2>注册</h2>
+        <input type="text" id="username" class="form-control" placeholder="用户名"  required autofocus>
+        <input type="password" id="password" class="form-control" placeholder="密码" required>
+        <select class="form-control">
+		</select>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">注册</button>
+    </form>
+{% endblock %}
+
+{% block js %}
+<script>
+//先从company表中获取到公司的名字，放在下拉菜单中
+$.getJSON('/common/getC',function(res){
+	var str = ''
+	$.each(res,function(index,val){
+		str += '<option>'+val+'</option>'
+	})
+	$('.form-signin').find('select').html(str)
+	$('select').val('')
+})
+//提交表单
+$('.form-signin').submit(function(){
+	var username = $('#username').val()
+	var password = $('#password').val()
+	var company = $('select').val()
+	$.post('/common/signup',{'username':username,'password':password,'company':company},function(res){
+		if(res != 'error'){
+			console.log(res)
+			$('#username').val('')
+			$('#password').val('')
+			$('select').val('')
+		}
+		else{
+			console.log('error')
+			$('#username').val('')
+			$('#password').val('')
+			$('select').val('')
+		}
+	})
+	return false
+})
+</script>
+{% endblock %}
+
