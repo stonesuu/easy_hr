@@ -2,11 +2,24 @@
 #coding=utf-8
 from flask import Flask,session,request,render_template,redirect,json
 import dbutil,time
-conn = dbutil.DB('hr_test','192.168.199.12','root','root')
-conn.connect()
+try:
+	conn = dbutil.DB('hr_test','10.99.160.36','root','root')
+	conn.connect()
+except Exception as e:
+	print e
+	try:
+		conn = dbutil.DB('hr_test','192.168.199.12','root','root')
+		conn.connect()
+	except Exception as e:
+		print e
+	else:
+		print 'connect success'
+else:
+	print 'connect success'
 SN_dict = {}
 date_list = []
 app = Flask(__name__)
+app.secret_key = 'sadfagraegrgaregareghhqare'
 
 def getjson(sql):
 	try:
@@ -18,8 +31,27 @@ def getjson(sql):
 		return res
 
 @app.route('/')
-def login():
-	return render_template('signin.html')
+def login_r():
+	return redirect('/signin')
+
+@app.route('/signin',methods=['GET','POST'])
+def signin():
+	if request.method == 'GET':
+		return render_template('signin.html')
+	elif request.method == 'POST':
+		username = request.form.get('username')
+		password = request.form.get('password')
+		sql = "SELECT COMPANY FROM user WHERE (NAME='%s' AND PASSWORD='%s')" % (username,password)
+		res = conn.execute(sql)
+		if len(res) == 0:
+			return render_template('signin.html',message="error")
+		else:
+			session['user'] = username
+			session['group'] = res[0][0]
+			if session['group'] == 0:
+				return redirect('/super/user')
+			else:
+				return redirect('/common/stuff')
 
 @app.route('/signup')
 def signup():
@@ -44,10 +76,17 @@ def com_signup():
 		return 'error'
 
 
-@app.route('/stuff')
-def stuff():
-	return render_template('stuff.html')
+@app.route('/common/stuff')
+def com_stuff():
+	if 'user' in session:
+		return render_template('stuff.html')
+	else:
+		return redirect('/signin')
 
+@app.route('/common/stuff/getmessage')
+def com_stuff_getm():
+	print session['user']
+	return json.dumps((session['user'],session['group']))
 
 
 
