@@ -88,6 +88,25 @@ def com_stuff_getm():
 	print session['user']
 	return json.dumps((session['user'],session['group']))
 
+@app.route('/common/stuff/add',methods=['POST'])
+def com_stuff_add():
+	name = request.form.get('name')
+	age = int(request.form.get('age'))
+	sex = request.form.get('sex')
+	tele = int(request.form.get('tele'))
+	address = request.form.get('address')
+	company = int(request.form.get('company'))
+	sql = "INSERT INTO stuff(NAME,SEX,AGE,COMPANY,TEL,ADDRESS) VALUES ('%s','%s',%s,%s,'%s','%s')" %(name,sex,age,company,tele,address)
+	res = conn.execute(sql)
+	if not res:
+		return 'ok'
+	else:
+		return 'error'
+
+@app.route('/common/stuff/get')
+def com_stuff_get():
+	
+
 
 
 if __name__ == '__main__':

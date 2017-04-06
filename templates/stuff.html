@@ -6,38 +6,107 @@
 {% endblock%}
 
 {% block content %}
-<h3 class="sub-header">人员添加</h3>
-<form class="form-inline">
-  <div class="form-group">
-    <label class="control-label">姓名</label>
-    <input type="text" class="form-control">
+<!-- <h3 class="sub-header">人员添加</h3> -->
+<div class="container-fluid">
+  <div class="row">
+  <div class="col-md-4">
+    <form class="form-horizontal">
+      <div class="form-group">
+        <label class="col-md-2 control-label">姓名</label>
+        <div class="col-md-10">
+          <input type="text" id="name" class="form-control">
+        </div>
   </div>
+</form>
+</div>
+<div class="col-md-1">
+  <h5 id="name_msg"></h5>
+</div>
+
+  <div class="col-md-4">
+  <form class="form-horizontal">
   <div class="form-group">
-    <label class="control-label">年龄</label>
-    <input type="text" class="form-control" >
+    <label class="col-md-2 control-label">年龄</label>
+    <div class="col-md-10">
+    <input type="text" id="age" class="form-control">
   </div>
+  </div>
+</form>
+</div>
+<div class="col-md-1">
+  <h5 id="age_msg"></h5>
+</div>
+
+<div class="col-md-2">
   <div class="form-group">
-    <label class="control-label">性别</label>
-    <select class="form-control" >
+    <label class=" col-md-4 control-label">性别</label>
+    <div class="col-md-8">
+    <select class="form-control" id="sex">
       <option>男</option>
       <option>女</option>
     </select>
   </div>
-  </form>
-  <form class="form-inline">
-    <div class="form-group">
-  <label class="control-label">电话</label>
-      <input type="text" class="form-control">
   </div>
-    <div class="form-group">
-    <label class="control-label">地址</label>
-      <input type="text" class="form-control">
-  </div>
+</div>
+</div>
+
+<div class="row">
+  <div class="col-md-4">
+  <form class="form-horizontal">
   <div class="form-group">
-      <button type="submit" class="btn btn-default">添加</button>
+    <label class="col-md-2 control-label">电话</label>
+    <div class="col-sm-10">
+    <input type="text" id="tele" class="form-control">
+  </div>
   </div>
 </form>
-<h3 class="sub-header">展示</h3>
+</div>
+<div class="col-md-1">
+  <h5 id="tele_msg"></h5>
+</div>
+
+  <div class="col-md-4">
+  <form class="form-horizontal">
+  <div class="form-group">
+    <label class="col-md-2 control-label">住址</label>
+    <div class="col-md-10">
+    <input type="text" id="address" class="form-control">
+  </div>
+  </div>
+</form>
+</div>
+<div class="col-md-1">
+  <h5 id="address_msg"></h5>
+</div>
+</div>
+
+<div class="row">
+  <div class="col-md-1">
+  <button type="button" id="submit" class="btn btn-sm btn-primary">添加人员</button>
+</div>
+</div>
+</div>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>序号</th>
+      <th>姓名</th>
+      <th>性别</th>
+      <th>年龄</th>
+      <th>电话</th>
+      <th>住址</th>
+    </tr>
+  </thead>
+  <tbody id="table">
+  </tbody>
+</table>
+
+<!--   <div class="form-group">
+      <button type="submit" class="btn btn-default">添加</button>
+  </div> -->
+
+<!-- <h3 class="sub-header">展示</h3> -->
 {% endblock %}
 
 {% block js %}
@@ -49,6 +118,58 @@
 		$('#navbar').find('ul').html(navbar)
 		$('#navbar').attr('group',res[1])
 	})
+  function getable(){
+    var str = ''
+    $.getJSON('/common/stuff/get',function(res){
+      $.each(res,function(ind,val){
+        str += '<tr><td>'+ind+'</td><td>'+val[1]+'</td><td>'+val[2]+'</td><td>'+val[3]+'</td><td>'+val[4]+'</td><td>'+val[5]+'</td>'
+        str += '<td><button class="btn btn-info btn-xs" id="'+val[0]+'"name="'+val[1]+'" sex="'+val[2]+'" age="'+val[3]+'" tele="'+val[4]+'" address="'+val[5]+'">修改</button>'
+        str += '<button class="btn btn-danger btn-xs" id="'+val[0]+'">删除</button></td></tr>'
+      })
+      $('#table').html(str)
+    })
+  }
+  getable()
+  $('#submit').on('click',function(){
+    var token = 1
+    var name = $('#name').val()
+    var age = $('#age').val()
+    var sex = $('#sex').val()
+    var tele = $('#tele').val()
+    var address = $('#address').val()
+    var company = $('#navbar').attr('group')
+    if(name.length==0){
+      $('#name_msg').html('内容错误')
+      token = 0
+    }
+        if(age.length==0){
+      $('#age_msg').html('内容错误')
+      token = 0
+    }
+        if(tele.length==0){
+      $('#tele_msg').html('内容错误')
+      token = 0
+    }
+        if(address.length==0){
+      $('#address_msg').html('内容错误')
+      token = 0
+    }
+    if(token == 1){
+      $.post('/common/stuff/add',{'name':name,'age':age,'sex':sex,'tele':tele,'address':address,'company':company},function(res){
+        if(res == 'ok'){
+          alert('1')
+          $('#name').val('')
+          $('#age').val('')
+          $('#tele').val('')
+          $('#address').val('')
+      }
+        else{
+          alert(0)
+      }
+    })
+  }
+  else{}
 
+  })
 </script>
 {% endblock %}
