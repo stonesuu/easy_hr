@@ -96,11 +96,47 @@
       <th>年龄</th>
       <th>电话</th>
       <th>住址</th>
+      <th>操作</th>
     </tr>
   </thead>
   <tbody id="table">
   </tbody>
 </table>
+
+  <div class="modal fade" tabindex="-1" role="dialog" id="mymodal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">修改</h4>
+      </div>
+      <div class="modal-body">
+	<form class="form-inline">
+	  <div class="form-group">
+	    <label for="name">姓名</label>
+	    <input type="text" class="form-control" id="modal_name" placeholder="">
+	  </div>
+	  <div class="form-group">
+	    <label for="age">年龄</label>
+	    <input type="text" class="form-control" id="modal_age" placeholder="">
+	  </div>
+	    <div class="form-group">
+	    <label for="sex">性别</label>
+	    <select type="text" class="form-control" id="modal_age">
+	    	<option>男</option>
+	    	<option>女</option>
+	    </select>
+	  </div>
+	</form>
+	      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary">确认</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div>
+
 
 <!--   <div class="form-group">
       <button type="submit" class="btn btn-default">添加</button>
@@ -114,22 +150,24 @@
 	$.getJSON('/common/stuff/getmessage',function(res){
 		var navbar = '<li><a href="#">你好! '
 		navbar += res[0]
-		navbar += '</a></li>'
+		navbar += '</a></li><li><a href="/logout">注销</a></li>'
 		$('#navbar').find('ul').html(navbar)
 		$('#navbar').attr('group',res[1])
 	})
+
   function getable(){
     var str = ''
     $.getJSON('/common/stuff/get',function(res){
       $.each(res,function(ind,val){
-        str += '<tr><td>'+ind+'</td><td>'+val[1]+'</td><td>'+val[2]+'</td><td>'+val[3]+'</td><td>'+val[4]+'</td><td>'+val[5]+'</td>'
-        str += '<td><button class="btn btn-info btn-xs" id="'+val[0]+'"name="'+val[1]+'" sex="'+val[2]+'" age="'+val[3]+'" tele="'+val[4]+'" address="'+val[5]+'">修改</button>'
-        str += '<button class="btn btn-danger btn-xs" id="'+val[0]+'">删除</button></td></tr>'
+        str += '<tr><td>'+(ind+1)+'</td><td>'+val[1]+'</td><td>'+val[2]+'</td><td>'+val[3]+'</td><td>'+val[4]+'</td><td>'+val[5]+'</td>'
+        str += '<td><button class="btn btn-info btn-xs update-btn" id="'+val[0]+'" name="'+val[1]+'" sex="'+val[2]+'" age="'+val[3]+'" tele="'+val[4]+'" address="'+val[5]+'">修改</button>'
+        str += '<button class="btn btn-danger btn-xs delete-btn" id="'+val[0]+'">删除</button></td></tr>'
       })
       $('#table').html(str)
     })
   }
   getable()
+
   $('#submit').on('click',function(){
     var token = 1
     var name = $('#name').val()
@@ -157,19 +195,45 @@
     if(token == 1){
       $.post('/common/stuff/add',{'name':name,'age':age,'sex':sex,'tele':tele,'address':address,'company':company},function(res){
         if(res == 'ok'){
-          alert('1')
+          alert('操作成功')
           $('#name').val('')
           $('#age').val('')
           $('#tele').val('')
           $('#address').val('')
+          getable()
       }
         else{
-          alert(0)
+          alert('操作失败')
       }
     })
   }
   else{}
+  })
 
+  $(document).on('click','.delete-btn',function(){
+  	res = confirm('确认删除？')
+  	if(res){
+  		var id = $(this).attr('id')
+  		$.post('/common/stuff/del',{'id':id},function(res){
+  			if(res == 'ok'){
+  				alter('操作成功')
+  				getable()
+  			}
+  			else{
+  				alert('操作失败')
+  			}
+  		})
+  }
+  })
+
+  $(document).on('click','.update-btn',function(){
+  	var id = $(this).attr('id')
+  	var name = $(this).attr('name')
+  	var sex = $(this).attr('sex')
+  	var age = $(this).attr('age')
+  	var tele = $(this).attr('tele')
+  	var address = $(this).attr('address')
+    $('#mymodal').modal('show')
   })
 </script>
 {% endblock %}

@@ -53,6 +53,12 @@ def signin():
 			else:
 				return redirect('/common/stuff')
 
+@app.route('/logout')
+def logout():
+	session.pop('user')
+	session.pop('group')
+	return redirect('/signin')
+
 @app.route('/signup')
 def signup():
 	return render_template('signup.html')
@@ -105,6 +111,10 @@ def com_stuff_add():
 
 @app.route('/common/stuff/get')
 def com_stuff_get():
+	company = session['group']
+	sql = 'SELECT ID_I,NAME,SEX,AGE,TEL,ADDRESS FROM stuff WHERE COMPANY=%s' % (company,)
+	res = getjson(sql)
+	return res
 	
 
 
