@@ -81,7 +81,20 @@
 </div>
 
 <div class="row">
-  <div class="col-md-1">
+   <div class="col-md-4">
+  <form class="form-horizontal">
+  <div class="form-group">
+    <label class="col-md-2 control-label">工资</label>
+    <div class="col-sm-10">
+    <input type="text" id="salary" class="form-control">
+  </div>
+  </div>
+</form>
+</div>
+<div class="col-md-1">
+  <h5 id="salary_msg"></h5>
+</div>
+  <div class="col-md-1 col-sm-offset-2">
   <button type="button" id="submit" class="btn btn-sm btn-primary">添加人员</button>
 </div>
 </div>
@@ -96,6 +109,7 @@
       <th>年龄</th>
       <th>电话</th>
       <th>住址</th>
+      <th>工资</th>
       <th>操作</th>
     </tr>
   </thead>
@@ -122,16 +136,28 @@
 	  </div>
 	    <div class="form-group">
 	    <label for="sex">性别</label>
-	    <select type="text" class="form-control" id="modal_age">
+	    <select type="text" class="form-control" id="modal_sex">
 	    	<option>男</option>
 	    	<option>女</option>
 	    </select>
 	  </div>
+        <div class="form-group">
+      <label for="age">电话</label>
+      <input type="text" class="form-control" id="modal_tele" placeholder="">
+    </div>
+        <div class="form-group">
+      <label for="age">住址</label>
+      <input type="text" class="form-control" id="modal_address" placeholder="">
+    </div>
+            <div class="form-group">
+      <label for="age">工资</label>
+      <input type="text" class="form-control" id="modal_salary" placeholder="">
+    </div>
 	</form>
 	      </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-        <button type="button" class="btn btn-primary">确认</button>
+        <button type="button" class="btn btn-primary" id="modal_confirm" pk="">确认</button>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
@@ -147,20 +173,20 @@
 
 {% block js %}
 <script>
-	$.getJSON('/common/stuff/getmessage',function(res){
-		var navbar = '<li><a href="#">你好! '
-		navbar += res[0]
-		navbar += '</a></li><li><a href="/logout">注销</a></li>'
-		$('#navbar').find('ul').html(navbar)
-		$('#navbar').attr('group',res[1])
-	})
+	// $.getJSON('/common/stuff/getmessage',function(res){
+	// 	var navbar = '<li><a href="#">你好! '
+	// 	navbar += res[0]
+	// 	navbar += '</a></li><li><a href="/logout">注销</a></li>'
+	// 	$('#navbar').find('ul').html(navbar)
+	// 	$('#navbar').attr('group',res[1])
+	// })
 
   function getable(){
     var str = ''
     $.getJSON('/common/stuff/get',function(res){
       $.each(res,function(ind,val){
-        str += '<tr><td>'+(ind+1)+'</td><td>'+val[1]+'</td><td>'+val[2]+'</td><td>'+val[3]+'</td><td>'+val[4]+'</td><td>'+val[5]+'</td>'
-        str += '<td><button class="btn btn-info btn-xs update-btn" id="'+val[0]+'" name="'+val[1]+'" sex="'+val[2]+'" age="'+val[3]+'" tele="'+val[4]+'" address="'+val[5]+'">修改</button>'
+        str += '<tr><td>'+(ind+1)+'</td><td>'+val[1]+'</td><td>'+val[2]+'</td><td>'+val[3]+'</td><td>'+val[4]+'</td><td>'+val[5]+'</td><td>'+val[6]+'</td>'
+        str += '<td><button class="btn btn-info btn-xs update-btn" id="'+val[0]+'" name="'+val[1]+'" sex="'+val[2]+'" age="'+val[3]+'" tele="'+val[4]+'" address="'+val[5]+'" salary="'+val[6]+'">修改</button>'
         str += '<button class="btn btn-danger btn-xs delete-btn" id="'+val[0]+'">删除</button></td></tr>'
       })
       $('#table').html(str)
@@ -176,6 +202,7 @@
     var tele = $('#tele').val()
     var address = $('#address').val()
     var company = $('#navbar').attr('group')
+    var salary = $('#salary').val()
     if(name.length==0){
       $('#name_msg').html('内容错误')
       token = 0
@@ -192,15 +219,21 @@
       $('#address_msg').html('内容错误')
       token = 0
     }
+     if(salary.length==0){
+      $('#salary_msg').html('内容错误')
+      token = 0
+    }
+
     if(token == 1){
-      $.post('/common/stuff/add',{'name':name,'age':age,'sex':sex,'tele':tele,'address':address,'company':company},function(res){
+      $.post('/common/stuff/add',{'name':name,'age':age,'sex':sex,'tele':tele,'address':address,'company':company,'salary':salary},function(res){
         if(res == 'ok'){
-          alert('操作成功')
           $('#name').val('')
           $('#age').val('')
           $('#tele').val('')
           $('#address').val('')
+          $('#salary').val('')
           getable()
+          alert('操作成功')
       }
         else{
           alert('操作失败')
@@ -215,9 +248,10 @@
   	if(res){
   		var id = $(this).attr('id')
   		$.post('/common/stuff/del',{'id':id},function(res){
+        console.log(res)
   			if(res == 'ok'){
-  				alter('操作成功')
-  				getable()
+          getable()
+  				alert('操作成功')
   			}
   			else{
   				alert('操作失败')
@@ -233,7 +267,39 @@
   	var age = $(this).attr('age')
   	var tele = $(this).attr('tele')
   	var address = $(this).attr('address')
+    var salary = $(this).attr('salary')
+    $('#modal_name').val(name)
+    $('#modal_age').val(age)
+    $('#modal_sex').val(sex)
+    $('#modal_tele').val(tele)
+    $('#modal_address').val(address)
+    $('#modal_salary').val(salary)
+    $('#modal_confirm').attr('pk',id)
     $('#mymodal').modal('show')
   })
+
+$('#modal_confirm').on('click',function(){
+  var id = $(this).attr('pk')
+  var name = $('#modal_name').val()
+  var sex = $('#modal_sex').val()
+  var age = $('#modal_age').val()
+  var tele = $('#modal_tele').val()
+  var address = $('#modal_address').val()
+  var salary = $('#modal_salary').val()
+  res = confirm('确认修改?')
+  if(res){
+
+    $.post('/common/stuff/update',{'id':id,'name':name,'sex':sex,'age':age,'tele':tele,'address':address,'salary':salary},function(res){
+      if(res == 'ok'){
+        getable()
+        $('#mymodal').modal('hide')
+        alert('操作成功')
+      }
+      else{
+        alert('操作失败')
+      }
+  })
+}
+})
 </script>
 {% endblock %}
