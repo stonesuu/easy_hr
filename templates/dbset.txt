@@ -1,0 +1,14 @@
+create view stuff_salary_temp(ID_I,NAME,COMPANY,BASE_I,ENDOWMENT_I,UNEMPLOYMENT_I,MEDICAL_I,INJURY_I,HOUSING_I,INDIVIDUAL,ANOTHER,DRAWBACK,NENEFIT01,BENEFIT02,BENEFIT03,BENEFIT04,ACTUAL) AS SELECT a.ID_I,NAME,COMPANY,BASE_I,ENDOWMENT_I,UNEMPLOYMENT_I,MEDICAL_I,INJURY_I,HOUSING_I,INDIVIDUAL,ANOTHER,DRAWBACK,BENEFIT01,BENEFIT02,BENEFIT03,BENEFIT04,ACTUAL FROM salary_temp a join stuff t on a.ID_I=t.ID_I;
+insert into set_i(ID) values(new.ID_I);
+delete from set_i where id = old.id_i;
+mysql> create trigger company_add after insert on company for each row
+    -> begin
+    -> insert into company_lock values (new.ID_C,0);
+    -> end //
+Query OK, 0 rows affected (0.04 sec)
+
+mysql> create trigger company_del after delete on company for each row
+    -> begin
+    -> delete from company_lock where ID_C=old.ID_C;
+    -> end //
+Query OK, 0 rows affected (0.02 sec)                                         

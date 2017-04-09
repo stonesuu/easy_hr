@@ -7,6 +7,23 @@
 
 {% block content %}
 <div class="col-sm-9">
+	<form class="form-inline">
+  <div class="form-group">
+  	<label>时间</label>
+    <div class="input-group">
+      <input type="text" class="form-control" id="salary_year">
+      <div class="input-group-addon">年</div>
+    </div>
+        <div class="input-group">
+      <input type="text" class="form-control" id="salary_mon">
+      <div class="input-group-addon">月</div>
+    </div>
+            <div class="input-group">
+      <input type="text" class="form-control" id="salary_day">
+      <div class="input-group-addon">日</div>
+    </div>
+  </div>
+</form>
 <table class="table table-striped">
   <thead>
     <tr>
@@ -26,43 +43,69 @@
   </tbody>
 </table>
 </div>
-<div class="col-sm-3">
-	<button class="btn btn-lg btn-info">产生工资表</button>
+<div class="col-sm-3" >
+	<button class="btn btn-lg btn-info" id="salary_cal">产生工资表</button>
 </div>
 {% endblock %}
 
 {% block js %}
 <script>
-$.getJSON('/common/salary/getbase',function(res){
+var status = $('#status').attr('status')//判断网页的状态
+var mydate = new Date()//日期操作，修改的是最上面的年月日三个表单
+var year = mydate.getFullYear()
+var mon = mydate.getMonth() + 1
+if (mon >= 1 && mon <= 9){
+mon = '0' + mon
+}
+var day = mydate.getDate()
+ if (day >=1 && day <=9){
+    day = '0' + day
+  }
+$('#salary_year').val(year)
+$('#salary_mon').val(mon)
+$('#salary_day').val(day)
+var date_sub = year+'-'+mon+'-'+day
+function setsalary(setclass){//这是除考核之外的其余值的修改，发现修改就产生提交，因为所有的值需要*100，考核不用，所以考核单写
+	$(document).on('change','.'+setclass,function(){
+		var id = $(this).parents().filter('tr').attr('pk')
+	//console.log(id)
+		var val = $(this).val()
+		if(val.length==0){
+			$(this).val(0)
+		}
+		else {
+			$.post('/common/salary/set',{'col':setclass,'id':id,'val':parseInt(val)*100},function(res){
+				if(res == 'ok'){
+
+			}
+			else{
+				alert('数据同步失败')
+			}
+		})
+		}
+		})
+	}
+$.getJSON('/common/salary/getbase',function(res){//查询表中的内容
 	var str = ''
 	$.each(res,function(ind,val){
-		str += '<tr pk="'+val[0]+'"><td>'+(ind+1)+'</td><td>'+val[1]+'</td><td>'+val[2]+'</td>'
-		str += '<td><div class="form-group"><input type="text" class="form-control another" value="'+val[3]+'"></div></td>'
-		str += '<td><div class="form-group"><input type="text" class="form-control drawback" value="'+val[4]+'"></div></td>'
-		str += '<td><div class="form-group"><input type="text" class="form-control benefit01" value="'+val[5]+'"></div></td>'
-		str += '<td><div class="form-group"><input type="text" class="form-control benefit02" value="'+val[6]+'"></div></td>'
-		str += '<td><div class="form-group"><input type="text" class="form-control benefit03" value="'+val[7]+'"></div></td>'
-		str += '<td><div class="form-group"><input type="text" class="form-control benefit04" value="'+val[8]+'"></div></td>'
+		str += '<tr pk="'+val[0]+'"><td>'+(ind+1)+'</td><td>'+val[1]+'</td><td>'+parseInt(val[2])/100+'</td>'
+		str += '<td><div class="form-group"><input type="text" class="form-control another" value="'+parseInt(val[3])/100+'"></div></td>'
+		str += '<td><div class="form-group"><input type="text" class="form-control drawback" value="'+parseInt(val[4])/100+'"></div></td>'
+		str += '<td><div class="form-group"><input type="text" class="form-control benefit01" value="'+parseInt(val[5])/100+'"></div></td>'
+		str += '<td><div class="form-group"><input type="text" class="form-control benefit02" value="'+parseInt(val[6])/100+'"></div></td>'
+		str += '<td><div class="form-group"><input type="text" class="form-control benefit03" value="'+parseInt(val[7])/100+'"></div></td>'
+		str += '<td><div class="form-group"><input type="text" class="form-control benefit04" value="'+parseInt(val[8])/100+'"></div></td>'
 		str += '<td><div class="form-group"><input type="text" class="form-control exam" value="'+val[9]+'"></div></td></tr>'
 	})
 	$('#table').html(str)
 })
-// $(document).on('change','.another',function(){
-// 	var id = $(this).parents().filter('tr').attr('pk')
-// 	//console.log(id)
-// 	var val = $(this).val()
-// 	$.post('/common/salary/set',{'col':'another','id':id,'val':val},function(res){
-// 		if(res == 'ok'){
-
-// 		}
-// 		else{
-// 			alert('数据同步失败')
-// 		}
-// 	})
-// })
-
-function setsalary(setclass){
-	$(document).on('change','.'+setclass,function(){
+setsalary('drawback')//这几个就是借用函数提交修改的
+setsalary('another')
+setsalary('benefit01')
+setsalary('benefit02')
+setsalary('benefit03')
+setsalary('benefit04')
+$(document).on('change','.exam',function(){//因为考核这一栏不需要*100，所以就单写了
 	var id = $(this).parents().filter('tr').attr('pk')
 	//console.log(id)
 	var val = $(this).val()
@@ -70,7 +113,7 @@ function setsalary(setclass){
 		$(this).val(0)
 	}
 	else {
-		$.post('/common/salary/set',{'col':setclass,'id':id,'val':val},function(res){
+		$.post('/common/salary/set',{'col':'exam','id':id,'val':parseInt(val)},function(res){
 			if(res == 'ok'){
 
 			}
@@ -80,14 +123,17 @@ function setsalary(setclass){
 		})
 	}
 })
-}
+$('#salary_cal').on('click',function(){
+	$.post('/common/salary/cal',{'date':date_sub},function(res){
+		if(res=='ok'){
+			alert('操作成功')
+			window.location.href='/common/salary'
+		}
+		else{
+			alert('操作失败')
+		}
+	})
+})
 
-setsalary('drawback')
-setsalary('another')
-setsalary('benefit01')
-setsalary('benefit02')
-setsalary('benefit03')
-setsalary('benefit04')
-setsalary('exam')
 </script>
 {% endblock %}

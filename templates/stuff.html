@@ -185,8 +185,8 @@
     var str = ''
     $.getJSON('/common/stuff/get',function(res){
       $.each(res,function(ind,val){
-        str += '<tr><td>'+(ind+1)+'</td><td>'+val[1]+'</td><td>'+val[2]+'</td><td>'+val[3]+'</td><td>'+val[4]+'</td><td>'+val[5]+'</td><td>'+val[6]+'</td>'
-        str += '<td><button class="btn btn-info btn-xs update-btn" id="'+val[0]+'" name="'+val[1]+'" sex="'+val[2]+'" age="'+val[3]+'" tele="'+val[4]+'" address="'+val[5]+'" salary="'+val[6]+'">修改</button>'
+        str += '<tr><td>'+(ind+1)+'</td><td>'+val[1]+'</td><td>'+val[2]+'</td><td>'+val[3]+'</td><td>'+val[4]+'</td><td>'+val[5]+'</td><td>'+parseInt(val[6])/100+'</td>'
+        str += '<td><button class="btn btn-info btn-xs update-btn" id="'+val[0]+'" name="'+val[1]+'" sex="'+val[2]+'" age="'+val[3]+'" tele="'+val[4]+'" address="'+val[5]+'" salary="'+parseInt(val[6])/100+'">修改</button>'
         str += '<button class="btn btn-danger btn-xs delete-btn" id="'+val[0]+'">删除</button></td></tr>'
       })
       $('#table').html(str)
@@ -225,7 +225,7 @@
     }
 
     if(token == 1){
-      $.post('/common/stuff/add',{'name':name,'age':age,'sex':sex,'tele':tele,'address':address,'company':company,'salary':salary},function(res){
+      $.post('/common/stuff/add',{'name':name,'age':age,'sex':sex,'tele':tele,'address':address,'company':company,'salary':parseInt(salary)*100},function(res){
         if(res == 'ok'){
           $('#name').val('')
           $('#age').val('')
@@ -289,7 +289,7 @@ $('#modal_confirm').on('click',function(){
   res = confirm('确认修改?')
   if(res){
 
-    $.post('/common/stuff/update',{'id':id,'name':name,'sex':sex,'age':age,'tele':tele,'address':address,'salary':salary},function(res){
+    $.post('/common/stuff/update',{'id':id,'name':name,'sex':sex,'age':age,'tele':tele,'address':address,'salary':parseInt(salary)*100},function(res){
       if(res == 'ok'){
         getable()
         $('#mymodal').modal('hide')
