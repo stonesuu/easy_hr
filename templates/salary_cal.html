@@ -11,15 +11,15 @@
   <div class="form-group">
   	<label>时间</label>
     <div class="input-group">
-      <input type="text" class="form-control" id="salary_year">
+      <input type="text" class="form-control" id="salary_year" disabled>
       <div class="input-group-addon">年</div>
     </div>
         <div class="input-group">
-      <input type="text" class="form-control" id="salary_mon">
+      <input type="text" class="form-control" id="salary_mon" disabled>
       <div class="input-group-addon">月</div>
     </div>
             <div class="input-group">
-      <input type="text" class="form-control" id="salary_day">
+      <input type="text" class="form-control" id="salary_day" disabled>
       <div class="input-group-addon">日</div>
     </div>
   </div>
@@ -32,6 +32,7 @@
       <th>工资</th>
       <th>养老保险</th>
       <th>失业保险</th>
+      <th>医疗保险</th>
       <th>工伤保险</th>
       <th>住房公积金</th>
       <th>个人所得说</th>
@@ -56,10 +57,18 @@
 
 {% block js %}
 <script>
+
 function get_cal(){
-  $.getJSON('/')
+  $.getJSON('/common/salary/get_cal',function(res){
+    var str = ''
+    $.each(res,function(ind,val){
+      str += '<tr><td>'+(ind+1)+'</td><td>'+val[1]+'</td><td>'+parseInt(val[2])/100+'</td><td>'+parseInt(val[3])/100+'</td><td>'+parseInt(val[4])/100+'</td><td>'+parseInt(val[5])/100+'</td><td>'+parseInt(val[6])/100+'</td><td>'+parseInt(val[7])/100+'</td><td>'+parseInt(val[8])/100+'</td><td>'+parseInt(val[9])/100+'</td><td>'+parseInt(val[10])/100+'</td><td>'+parseInt(val[11])/100+'</td><td>'+parseInt(val[12])/100+'</td><td>'+parseInt(val[13])/100+'</td><td>'+parseInt(val[14])/100+'</td><td>'+parseInt(val[15])/100+'</td></tr>'
+    })
+    $('#table').html(str)
+  })
 }
-$('#salary_recal').on('click',function(){
+get_cal()
+$('#salary_recal').on('click',function(){//修改按钮
 	$.post('/common/salary',{'cal':0},function(res){
 		if(res=='ok'){
 			window.location.href='/common/salary'
@@ -68,6 +77,20 @@ $('#salary_recal').on('click',function(){
 			alert('操作错误')
 		}
 	})
+})
+$('#salary_sub').on('click',function(){//提交按钮
+  res = confirm('提交之后无法更改，确认要提交吗？')
+  if(res){
+    $.post('/common/salary/submit',{'sub':1},function(res){
+      if (res=='ok'){
+        alert('操作成功')
+        window.location.href='/common/salary'
+      }
+      else{
+        alert('操作失败')
+      }
+    })
+  }
 })
 </script>
 {% endblock %}

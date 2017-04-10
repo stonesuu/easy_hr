@@ -146,7 +146,7 @@ def com_stuff_add():
 @app.route('/common/stuff/get')
 def com_stuff_get():
 	company = session['group']
-	sql = 'SELECT ID_I,NAME,SEX,AGE,TEL,ADDRESS,SALARY FROM stuff WHERE COMPANY=%s' % (company,)
+	sql = 'SELECT ID_I,NAME,SEX,AGE,TEL,ADDRESS,SALARY FROM stuff WHERE COMPANY=%s ORDER BY ID_I' % (company,)
 	res = getjson(sql)
 	return res
 
@@ -179,7 +179,7 @@ def com_stuff_upd():
 @app.route('/common/salary',methods=['GET','POST'])
 def com_salary():
 	if request.method == 'POST':
-		sql = 'UPDATE company_lock SET LOK=0 WHERE ID_C=%s' % (session['group'])
+		sql = "UPDATE company_lock SET LOK=0 ,TIMELOK='1971-01-01' WHERE ID_C=%s" % (session['group'])
 		res = conn.execute(sql)
 		if not res:
 			return 'ok'
@@ -201,7 +201,7 @@ def com_salary_gb():
 	session['salary_dict'] = {}
 	# sql = "SELECT ID_I,NAME,SALARY,ANOTHER,DRAWBACK,BENEFIT01,BENEFIT02,BENEFIT03,BENEFIT04,EXAM FROM stuff f JOIN set_i s ON f.ID_I = s.ID"
 	#创建了一个视图，但是这里要注意视图需要带上company
-	sql = "SELECT ID_I,NAME,SALARY,ANOTHER,DRAWBACK,BENEFIT01,BENEFIT02,BENEFIT03,BENEFIT04,EXAM FROM stuff_set_i WHERE COMPANY=%s" % (session['group'])
+	sql = "SELECT ID_I,NAME,SALARY,ANOTHER,DRAWBACK,BENEFIT01,BENEFIT02,BENEFIT03,BENEFIT04,EXAM FROM stuff_set_i WHERE COMPANY=%s ORDER BY ID_I" % (session['group'])
 	tmp = conn.execute(sql)
 	for item in tmp:
  		session['salary_dict'][item[0]] = {'salary':item[2],'another':item[3],'drawback':item[4],'benefit01':item[5],'benefit02':item[6],'benefit03':item[7],'benefit04':item[8],'exam':item[9]}
@@ -228,7 +228,7 @@ def com_salary_set():
 def com_salary_cal():
 	date = request.form.get('date')
 	check = 0
-	lock = "UPDATE company_lock SET LOK=1 WHERE ID_C=%s" %(session['group'])
+	lock = "UPDATE company_lock SET LOK=1,TIMELOK='%s' WHERE ID_C=%s" %(date,session['group'])
 	res_lock = conn.execute(lock)
 	if(res_lock):
 		return 'error'
@@ -252,12 +252,32 @@ def com_salary_cal():
 	else:
 		return 'cannot start transaction'
 
-@app.route('/connom/salary/get_cal')
+@app.route('/common/salary/get_cal')
 def com_salary_gc():
 	sql = 'SELECT ID_I,NAME,BASE_I,ENDOWMENT_I,UNEMPLOYMENT_I,MEDICAL_I,INJURY_I,HOUSING_I,INDIVIDUAL,ANOTHER,\
-	DRAWBACK,NENEFIT01,BENEFIT02,BENEFIT03,BENEFIT04,ACTUAL FROM stuff_salary_temp'
+	DRAWBACK,NENEFIT01,BENEFIT02,BENEFIT03,BENEFIT04,ACTUAL FROM stuff_salary_temp WHERE COMPANY=%s ORDER BY ID_I' %(session['group'])
 	res = getjson(sql)
 	return res
+
+@app.route('/common/salary/submit',methods=['POST'])
+def com_salary_sub():
+	check = 0
+	sql_start = "start transaction"
+	sql_sub = "INSERT INTO salary SELECT * FROM salary WHERE ID_I IN (SELECT ID_I FROM stuff WHERE COMPANY=%s)" % (session['group'])
+	sql_clean_set = "UPDATE set_i SET ANOTHER=0,DRAWBACK=0,BENEFIT01=0,BENEFIT02=0,BENEFIT03=0,BENEFIT04=0,EXAM=0 WHERE ID IN (SELECT ID_I FROM stuff WHERE COMPANY=%s)" % (session['group'])
+	sql_clean_lok = "UPDATE company_lock SET LOK=0,TIMELOK='1971-01-01' WHERE ID_C=%s" % (session['group'])
+	for sql in (sql_start,sql_sub,sql_clean_set,sql_clean_lok):
+		res = conn.execute(sql)
+		if res:
+			check =1
+			break
+	if check == 1:
+		conn.execute('rollback')
+		return 'error'
+	else:
+		conn.execute('commit')
+		return 'ok'
+
 	
 if __name__ == '__main__':
 	app.run(host='0.0.0.0',port=9023,debug=True)
