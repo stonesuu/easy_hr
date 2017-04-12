@@ -1,5 +1,6 @@
 #!/bin/env python2.7
 #coding=utf-8
+import datetime
 from flask import Flask,session,request,render_template,redirect,json
 import dbutil,time
 try:
@@ -92,15 +93,21 @@ def logout():
 	session.pop('group')
 	return redirect('/signin')
 
+
 @app.route('/signup')
 def signup():
 	return render_template('signup.html')
 
-@app.route('/common/getC')
+@app.route('/common/getC',methods=['GET','POST'])
 def com_getC():
-	sql = 'SELECT NAME FROM COMPANY'
-	res = getjson(sql)
-	return res
+	if request.method == 'GET':
+		sql = 'SELECT NAME FROM COMPANY'
+		res = getjson(sql)
+		return res
+	else:
+		sql = 'SELECT NAME FROM COMPANY WHERE ID_C=%s' %(session['group'])
+		res = conn.execute(sql)
+		return res[0][0]
 
 @app.route('/common/signup',methods=['post'])
 def com_signup():
@@ -175,11 +182,19 @@ def com_stuff_upd():
 		return 'ok'
 	else:
 		return 'error'
+
+@app.route('/common/salary/getime')
+def com_salary_gt():
+	sql = 'SELECT TIMELOK FROM company_lock WHERE ID_C=%s' %(session['group'],)
+	res = conn.execute(sql)
+	#print type(res[0][0])
+	date = res[0][0].strftime('%Y-%m-%d')
+	return date
 	
 @app.route('/common/salary',methods=['GET','POST'])
 def com_salary():
 	if request.method == 'POST':
-		sql = "UPDATE company_lock SET LOK=0 ,TIMELOK='1971-01-01' WHERE ID_C=%s" % (session['group'])
+		sql = "UPDATE company_lock SET LOK=0 WHERE ID_C=%s" % (session['group']) #只要点击过一次产生工资表，那么时间就被冻结了。重新修改的时间还是上次产生工资表的时间。timelok的值只有第一次被修改后就不变了
 		res = conn.execute(sql)
 		if not res:
 			return 'ok'
@@ -198,7 +213,7 @@ def com_salary():
 
 @app.route('/common/salary/getbase')
 def com_salary_gb():
-	session['salary_dict'] = {}
+	session['salary_dict'] = {}#创建一个以ID_I为key，其余为value的session['salary_dict']
 	# sql = "SELECT ID_I,NAME,SALARY,ANOTHER,DRAWBACK,BENEFIT01,BENEFIT02,BENEFIT03,BENEFIT04,EXAM FROM stuff f JOIN set_i s ON f.ID_I = s.ID"
 	#创建了一个视图，但是这里要注意视图需要带上company
 	sql = "SELECT ID_I,NAME,SALARY,ANOTHER,DRAWBACK,BENEFIT01,BENEFIT02,BENEFIT03,BENEFIT04,EXAM FROM stuff_set_i WHERE COMPANY=%s ORDER BY ID_I" % (session['group'])
@@ -210,7 +225,7 @@ def com_salary_gb():
 	return res
 
 @app.route('/common/salary/set',methods=['POST'])
-def com_salary_set():
+def com_salary_set():#每一次修改，都会同步修改数据库和session['salary_dict']的值
 	ID_I = request.form.get('id')
 	col = request.form.get('col')
 	val = request.form.get('val')
@@ -224,7 +239,7 @@ def com_salary_set():
 	else:
 		return 'error'
 
-@app.route('/common/salary/cal',methods=['POST'])
+@app.route('/common/salary/cal',methods=['POST'])#LOK用于点击生成工资表之后锁定这个状态，TIMELOK用于锁定点击时的日期
 def com_salary_cal():
 	date = request.form.get('date')
 	check = 0
@@ -237,7 +252,7 @@ def com_salary_cal():
 	if not(res_begin):
 		delete = 'DELETE FROM salary_temp WHERE TIME="%s" AND ID_I IN (SELECT ID_I FROM stuff WHERE COMPANY=%s)' % (date,session['group'])
 		conn.execute(delete)
-		for key,val in session['salary_dict'].items():
+		for key,val in session['salary_dict'].items():#这个session['salary_dict']就是用来计算工资的。
 			print cal(date,839600,key,val)
 			res = conn.execute(cal(date,839600,key,val))
 			if(res):
@@ -263,10 +278,11 @@ def com_salary_gc():
 def com_salary_sub():
 	check = 0
 	sql_start = "start transaction"
-	sql_sub = "INSERT INTO salary SELECT * FROM salary WHERE ID_I IN (SELECT ID_I FROM stuff WHERE COMPANY=%s)" % (session['group'])
+	sql_sub = "INSERT INTO salary SELECT * FROM salary_temp WHERE ID_I IN (SELECT ID_I FROM stuff WHERE COMPANY=%s)" % (session['group'])
+	sql_clean_temp = "DELETE FROM salary_temp WHERE ID_I IN (SELECT ID_I FROM stuff WHERE COMPANY=%s)" %(session['group'])
 	sql_clean_set = "UPDATE set_i SET ANOTHER=0,DRAWBACK=0,BENEFIT01=0,BENEFIT02=0,BENEFIT03=0,BENEFIT04=0,EXAM=0 WHERE ID IN (SELECT ID_I FROM stuff WHERE COMPANY=%s)" % (session['group'])
 	sql_clean_lok = "UPDATE company_lock SET LOK=0,TIMELOK='1971-01-01' WHERE ID_C=%s" % (session['group'])
-	for sql in (sql_start,sql_sub,sql_clean_set,sql_clean_lok):
+	for sql in (sql_start,sql_sub,sql_clean_temp,sql_clean_set,sql_clean_lok):
 		res = conn.execute(sql)
 		if res:
 			check =1

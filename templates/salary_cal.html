@@ -57,7 +57,12 @@
 
 {% block js %}
 <script>
-
+$.get('/common/salary/getime',function(res){
+  var datelist = res.split('-')
+  $('#salary_year').val(datelist[0])
+  $('#salary_mon').val(datelist[1])
+  $('#salary_day').val(datelist[2])
+})
 function get_cal(){
   $.getJSON('/common/salary/get_cal',function(res){
     var str = ''

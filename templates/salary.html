@@ -11,7 +11,7 @@
   <div class="form-group">
   	<label>时间</label>
     <div class="input-group">
-      <input type="text" class="form-control" id="salary_year">
+      <input type="text" class="form-control" id="salary_year" >
       <div class="input-group-addon">年</div>
     </div>
         <div class="input-group">
@@ -62,10 +62,26 @@ var day = mydate.getDate()
  if (day >=1 && day <=9){
     day = '0' + day
   }
-$('#salary_year').val(year)
-$('#salary_mon').val(mon)
-$('#salary_day').val(day)
-var date_sub = year+'-'+mon+'-'+day
+var date_sub = ''
+ $.get('/common/salary/getime',function(res){
+ 	if(res == '1971-01-01'){
+ 		$('#salary_year').val(year)
+		$('#salary_mon').val(mon)
+		$('#salary_day').val(day)
+		date_sub = year+'-'+mon+'-'+day
+ 	}
+ 	else{
+ 		var datelist = res.split('-')
+ 		$('#salary_year').val(datelist[0])
+ 		$('#salary_year').attr('disabled','')
+ 		$('#salary_mon').val(datelist[1])
+ 		$('#salary_mon').attr('disabled','')
+ 		$('#salary_day').val(datelist[2])
+ 		$('#salary_day').attr('disabled','')
+ 		date_sub = res
+ 	}
+ })
+//var date_sub = year+'-'+mon+'-'+day
 function setsalary(setclass){//这是除考核之外的其余值的修改，发现修改就产生提交，因为所有的值需要*100，考核不用，所以考核单写
 	$(document).on('change','.'+setclass,function(){
 		var id = $(this).parents().filter('tr').attr('pk')
