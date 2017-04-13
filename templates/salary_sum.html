@@ -1,0 +1,57 @@
+{% extends 'layout.html' %}
+
+{% block sidebar %}
+<li><a href="/common/stuff">人员管理</a><li>
+<li><a href="/common/salary">工资发放</a></li>
+<li calss="active"><a href="#">工资统计</a></li>
+{% endblock%}
+
+{% block content %}
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>序号</th>
+      <th>姓名</th>
+      <th>日期</th>
+      <th>工资</th>
+      <th>养老保险/公司</th>
+      <th>养老保险/个人</th>
+      <th>失业保险/公司</th>
+      <th>失业保险/个人</th>
+      <th>医疗保险/公司</th>
+      <th>医疗保险/个人</th>
+      <th>工伤保险/公司</th>
+      <th>工伤保险/个人</th>
+      <th>住房公积金/公司</th>
+      <th>住房公积金/个人</th>
+      <th>个人所得说</th>
+      <th>补交</th>
+      <th>退费</th>
+      <th>补助01</th>
+      <th>补助02</th>
+      <th>补助03</th>
+      <th>补助04</tH>
+      <th>实发</th>
+    </tr>
+  </thead>
+  <tbody id="table">
+  </tbody>
+</table>
+{% endblock %}
+
+{% block js %}
+<script>
+function getable(){
+	$.getJSON('/common/summary/getable',function(res){
+		var str = ''
+		$.each(res,function(ind,val){
+			str += '<tr><td>'+(ind+1)+'</td><td>'+val[1]+'</td><td>'+val[2]+'</td><td>'+parseInt(val[3])/100+'</td><td>'+parseInt(val[4])/100+'</td><td>'+parseInt(val[5])/100+'</td><td>'+parseInt(val[6])/100+'</td><td>'+parseInt(val[7])/100+'</td><td>'+parseInt(val[8])/100+'</td><td>'+parseInt(val[9])/100+'</td><td>'+parseInt(val[10])/100+'</td><td>'+parseInt(val[11])/100+'</td><td>'+parseInt(val[12])/100+'</td><td>'+parseInt(val[13])/100+'</td><td>'+parseInt(val[14])/100+'</td><td>'+parseInt(val[15])/100+'</td><td>'+parseInt(val[16])/100+'</td><td>'+parseInt(val[17])/100+'</td><td>'+parseInt(val[18])/100+'</td><td>'+parseInt(val[19])/100+'</td><td>'+parseInt(val[20])/100+'</td><td>'+parseInt(val[21])/100+'</td></tr>'
+		})
+		$('#table').html(str)
+	})
+}
+
+getable()
+
+</script>
+{% endblock %}

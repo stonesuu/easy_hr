@@ -249,8 +249,8 @@ def com_salary_cal():
 		return 'error'
 	before = 'start transaction'
 	res_begin = conn.execute(before)
-	if not(res_begin):
-		delete = 'DELETE FROM salary_temp WHERE TIME="%s" AND ID_I IN (SELECT ID_I FROM stuff WHERE COMPANY=%s)' % (date,session['group'])
+	if not(res_begin): #修改的按钮会删除掉该公司中存储的所有数据，而不再去匹配时间。
+		delete = 'DELETE FROM salary_temp WHERE ID_I IN (SELECT ID_I FROM stuff WHERE COMPANY=%s)' % (date,session['group'])
 		conn.execute(delete)
 		for key,val in session['salary_dict'].items():#这个session['salary_dict']就是用来计算工资的。
 			print cal(date,839600,key,val)
@@ -294,6 +294,18 @@ def com_salary_sub():
 		conn.execute('commit')
 		return 'ok'
 
-	
+@app.route('/common/summary')
+def com_sum():
+	return render_template('salary_sum.html')
+
+@app.route('/common/summary/getable',methods=['GET','POST'])
+def com_sum_getable():
+	if request.method == 'GET':
+		sql = "SELECT ID_I,NAME,date_format(TIME,'%Y-%m-%d'),BASE_I,ENDOWMENT_C,ENDOWMENT_I,"
+		sql += "UNEMPLOYMENT_C,UNEMPLOYMENT_I,MEDICAL_C,MEDICAL_I,INJURY_C,INJURY_I,HOUSING_C,HOUSING_I,INDIVIDUAL,"
+		sql += "ANOTHER,DRAWBACK,BENEFIT01,BENEFIT02,BENEFIT03,BENEFIT04,ACTUAL FROM stuff_salary WHERE COMPANY=%s" %(session['group'])
+		res = getjson(sql)
+		return res
+
 if __name__ == '__main__':
 	app.run(host='0.0.0.0',port=9023,debug=True)
