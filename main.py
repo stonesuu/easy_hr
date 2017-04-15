@@ -4,17 +4,11 @@ import datetime
 from flask import Flask,session,request,render_template,redirect,json
 import dbutil,time
 try:
-	conn = dbutil.DB('hr_test','10.99.160.36','root','root')
+	conn = dbutil.DB('hr_test','192.168.199.12','root','root')
 	conn.connect()
 except Exception as e:
 	print e
-	try:
-		conn = dbutil.DB('hr_test','192.168.199.12','root','root')
-		conn.connect()
-	except Exception as e:
-		print e
-	else:
-		print 'connect success'
+	print 'connect error'
 else:
 	print 'connect success'
 SN_dict = {}
@@ -31,37 +25,37 @@ def getjson(sql):
 	else:
 		return res
 
-def cal(date,base_c,key,val):
-	string = ''
-	id_i = int(key)
-	#val={'salary','another','drawback','benefit01','benefit02','benefit03','benefit04','exam'}
-	base_i = int(val['salary'])*(1-int(val[u'exam'])/100)
-	endow_i = base_i*0.05
-	endow_c = endow_i*2
-	unemploy_i = base_i*0.02
-	unemploy_c = unemploy_i*2
-	medical_i = base_i*0.01
-	medical_c = medical_i*2
-	injury_i = base_i*0.01
-	injury_c = injury_i*2
-	house_i = base_i*0.05
-	house_c = house_i*2
-	individual = base_i*0.05
-	another = int(val[u'another'])
-	drawback = int(val[u'drawback'])
-	bene01 = int(val[u'benefit01'])
-	bene02 = int(val[u'benefit02'])
-	bene03 = int(val[u'benefit03'])
-	bene04 = int(val[u'benefit04'])
-	actual = base_i-endow_i-unemploy_i-medical_i-injury_i-house_i-individual-another+drawback+bene01+bene02+bene03+bene04
-	profit = base_c-base_i-endow_c-unemploy_c-medical_c-injury_c-house_c
-	string = "INSERT INTO salary_temp(ID_I,TIME,BASE_C,BASE_I,ENDOWMENT_C,ENDOWMENT_I,UNEMPLOYMENT_C,UNEMPLOYMENT_I,\
-		MEDICAL_C,MEDICAL_I,INJURY_C,INJURY_I,HOUSING_C,HOUSING_I,\
-		INDIVIDUAL,ANOTHER,DRAWBACK,BENEFIT01,BENEFIT02,BENEFIT03,BENEFIT04,\
-		ACTUAL,PROFIT) VALUES(%s,'%s',%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)" \
-		%(id_i,date,base_c,base_i,endow_c,endow_i,unemploy_c,unemploy_i,medical_c,medical_i,injury_c,injury_i,\
-		house_c,house_i,individual,another,drawback,bene01,bene02,bene03,bene04,actual,profit)
-	return string
+# def cal(date,base_c,key,val):
+# 	string = ''
+# 	id_i = int(key)
+# 	#val={'salary','another','drawback','benefit01','benefit02','benefit03','benefit04','exam'}
+# 	base_i = int(val['salary'])*(1-int(val[u'exam'])/100)
+# 	endow_i = base_i*0.05
+# 	endow_c = endow_i*2
+# 	unemploy_i = base_i*0.02
+# 	unemploy_c = unemploy_i*2
+# 	medical_i = base_i*0.01
+# 	medical_c = medical_i*2
+# 	injury_i = base_i*0.01
+# 	injury_c = injury_i*2
+# 	house_i = base_i*0.05
+# 	house_c = house_i*2
+# 	individual = base_i*0.05
+# 	another = int(val[u'another'])
+# 	drawback = int(val[u'drawback'])
+# 	bene01 = int(val[u'benefit01'])
+# 	bene02 = int(val[u'benefit02'])
+# 	bene03 = int(val[u'benefit03'])
+# 	bene04 = int(val[u'benefit04'])
+# 	actual = base_i-endow_i-unemploy_i-medical_i-injury_i-house_i-individual-another+drawback+bene01+bene02+bene03+bene04
+# 	profit = base_c-base_i-endow_c-unemploy_c-medical_c-injury_c-house_c
+# 	string = "INSERT INTO salary_temp(ID_I,TIME,BASE_C,BASE_I,ENDOWMENT_C,ENDOWMENT_I,UNEMPLOYMENT_C,UNEMPLOYMENT_I,\
+# 		MEDICAL_C,MEDICAL_I,INJURY_C,INJURY_I,HOUSING_C,HOUSING_I,\
+# 		INDIVIDUAL,ANOTHER,DRAWBACK,BENEFIT01,BENEFIT02,BENEFIT03,BENEFIT04,\
+# 		ACTUAL,PROFIT) VALUES(%s,'%s',%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)" \
+# 		%(id_i,date,base_c,base_i,endow_c,endow_i,unemploy_c,unemploy_i,medical_c,medical_i,injury_c,injury_i,\
+# 		house_c,house_i,individual,another,drawback,bene01,bene02,bene03,bene04,actual,profit)
+# 	return string
 	
 
 @app.route('/')
@@ -213,13 +207,13 @@ def com_salary():
 
 @app.route('/common/salary/getbase')
 def com_salary_gb():
-	session['salary_dict'] = {}#创建一个以ID_I为key，其余为value的session['salary_dict']
+	#session['salary_dict'] = {}#创建一个以ID_I为key，其余为value的session['salary_dict']
 	# sql = "SELECT ID_I,NAME,SALARY,ANOTHER,DRAWBACK,BENEFIT01,BENEFIT02,BENEFIT03,BENEFIT04,EXAM FROM stuff f JOIN set_i s ON f.ID_I = s.ID"
 	#创建了一个视图，但是这里要注意视图需要带上company
 	sql = "SELECT ID_I,NAME,SALARY,ANOTHER,DRAWBACK,BENEFIT01,BENEFIT02,BENEFIT03,BENEFIT04,EXAM FROM stuff_set_i WHERE COMPANY=%s ORDER BY ID_I" % (session['group'])
 	tmp = conn.execute(sql)
-	for item in tmp:
- 		session['salary_dict'][item[0]] = {'salary':item[2],'another':item[3],'drawback':item[4],'benefit01':item[5],'benefit02':item[6],'benefit03':item[7],'benefit04':item[8],'exam':item[9]}
+	# for item in tmp:
+ # 		session['salary_dict'][item[0]] = {'salary':item[2],'another':item[3],'drawback':item[4],'benefit01':item[5],'benefit02':item[6],'benefit03':item[7],'benefit04':item[8],'exam':item[9]}
  	#print session['salary_dict']
 	res = json.dumps(tmp)
 	return res
@@ -230,7 +224,7 @@ def com_salary_set():#每一次修改，都会同步修改数据库和session['s
 	col = request.form.get('col')
 	val = request.form.get('val')
 	#print session['salary_dict'],session会将内容全部转换成unicode
-	session['salary_dict'][ID_I][col]=val
+	#session['salary_dict'][ID_I][col]=val
 	#print session['salary_dict']
 	sql = "UPDATE set_i SET %s=%s WHERE ID=%s" % (col,val,ID_I)
 	res = conn.execute(sql)
@@ -247,30 +241,37 @@ def com_salary_cal():
 	res_lock = conn.execute(lock)
 	if(res_lock):
 		return 'error'
-	before = 'start transaction'
-	res_begin = conn.execute(before)
-	if not(res_begin): #修改的按钮会删除掉该公司中存储的所有数据，而不再去匹配时间。
-		delete = 'DELETE FROM salary_temp WHERE ID_I IN (SELECT ID_I FROM stuff WHERE COMPANY=%s)' % (date,session['group'])
-		conn.execute(delete)
-		for key,val in session['salary_dict'].items():#这个session['salary_dict']就是用来计算工资的。
-			print cal(date,839600,key,val)
-			res = conn.execute(cal(date,839600,key,val))
-			if(res):
-				check=1
-				break
-	  	if check == 1:
-	  		conn.execute('rollback')
-	  		return 'error'
-	  	else:
-	  		conn.execute('commit')
-	  		return 'ok'
+	sql = "call salary_cal(%s,1880300,'%s')" %(session['group'],date)
+	res = conn.execute(sql)
+	if not res:
+		return 'ok'
 	else:
-		return 'cannot start transaction'
+		return 'error'
+	# before = 'start transaction'
+	# res_begin = conn.execute(before)
+	# if not(res_begin): #修改的按钮会删除掉该公司中存储的所有数据，而不再去匹配时间。
+	# 	# delete = 'DELETE FROM salary_temp WHERE ID_I IN (SELECT ID_I FROM stuff WHERE COMPANY=%s)' % (session['group'])
+	# 	# conn.execute(delete)
+	# 	# for key,val in session['salary_dict'].items():#这个session['salary_dict']就是用来计算工资的。
+	# 	# 	print cal(date,839600,key,val)
+	# 	# 	res = conn.execute(cal(date,839600,key,val))
+	# 	# 	if(res):
+	# 	# 		check=1
+	# 	# 		break
+	#  #  	if check == 1:
+	#  #  		conn.execute('rollback')
+	#  #  		return 'error'
+	#  #  	else:
+	#  #  		conn.execute('commit')
+	#  #  		return 'ok'
+
+	# else:
+	# 	return 'cannot start transaction'
 
 @app.route('/common/salary/get_cal')
 def com_salary_gc():
 	sql = 'SELECT ID_I,NAME,BASE_I,ENDOWMENT_I,UNEMPLOYMENT_I,MEDICAL_I,INJURY_I,HOUSING_I,INDIVIDUAL,ANOTHER,\
-	DRAWBACK,NENEFIT01,BENEFIT02,BENEFIT03,BENEFIT04,ACTUAL FROM stuff_salary_temp WHERE COMPANY=%s ORDER BY ID_I' %(session['group'])
+	DRAWBACK,BENEFIT01,BENEFIT02,BENEFIT03,BENEFIT04,ACTUAL FROM stuff_salary_temp WHERE COMPANY=%s ORDER BY ID_I' %(session['group'])
 	res = getjson(sql)
 	return res
 
